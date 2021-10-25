@@ -1,6 +1,8 @@
 import {Box, makeStyles, formControl, InputBase,Button,TextareaAutosize } from '@material-ui/core'
 import { AddCircle } from '@material-ui/icons';
+import { Formik } from 'formik';
 import { useState } from 'react';
+import app_config from '../../config';
 
 import { createPost } from '../../service/api';
 
@@ -50,6 +52,8 @@ const CreatePost = () => {
     const url = 'https://www.webnode.com/blog/wp-content/uploads/2019/04/blog2.png';
 
     const[post,setPost] = useState(intialValues);
+    const [blogvalue, setblogValue] = useState("**Hello world!!!**");
+    const api_url = app_config.api_url;
 
     const handleChange = (e) => {
         setPost({...post,[e.target.name]: e.target.value})
@@ -58,29 +62,35 @@ const CreatePost = () => {
       await  createPost(post);
     }
 
+    const blogForm = {
+        title: "",
+        description: "",
+        image: "",
+        data: "",
+      };
+    
+      const addBlog = (values) => {
+        values.image = thumbnail;
+        values.data = blogvalue;
+        console.log(values);
+        fetch(url + "/blog/add", {
+          method: "POST",
+          body: JSON.stringify(values),
+          headers: { "Content-Type": "application/json" },
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log(data);
+          });
+      };
+
     return (
        <Box className={classes.container}>
            <img className={classes.image} src={url} alt=""/>
 
-           <formControl className={classes.form}>
-               <AddCircle fontSize="large" color="action"/>  
+           <Formik initialValues={blogForm} onSubmit={blo}>
 
-               <InputBase 
-               onChange={(e) => handleChange(e)}
-               placeholder='Title' 
-               className={classes.textfield}
-               name='title'
-               />
-               <Button onClick={() => savePost()} variant="contained" color="primary">Publish</Button>
-           </formControl>
-
-           <TextareaAutosize
-                rowsMin={5}
-                placeholder="Tell your story..."
-                className={classes.textarea}
-                onChange={(e) => handleChange(e)}
-                name='description'
-            />
+           </Formik>
        </Box>
     )
 }
