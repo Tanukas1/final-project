@@ -3,8 +3,10 @@ import { AddCircle } from '@material-ui/icons';
 import { Formik } from 'formik';
 import { useState } from 'react';
 import app_config from '../../config';
+import MDEditor from '@uiw/react-md-editor';
 
 import { createPost } from '../../service/api';
+import Swal from 'sweetalert2';
 
 const useStyle = makeStyles(theme =>({
     container: {
@@ -52,7 +54,8 @@ const CreatePost = () => {
     const url = 'https://www.webnode.com/blog/wp-content/uploads/2019/04/blog2.png';
 
     const[post,setPost] = useState(intialValues);
-    const [blogvalue, setblogValue] = useState("**Hello world!!!**");
+    const [blogvalue, setblogValue] = useState("**Write Blog Content Here**");
+    const [thumbnail, setThumbnail] = useState("");
     const api_url = app_config.api_url;
 
     const handleChange = (e) => {
@@ -73,7 +76,7 @@ const CreatePost = () => {
         values.image = thumbnail;
         values.data = blogvalue;
         console.log(values);
-        fetch(url + "/blog/add", {
+        fetch(api_url + "/blog/add", {
           method: "POST",
           body: JSON.stringify(values),
           headers: { "Content-Type": "application/json" },
@@ -81,6 +84,27 @@ const CreatePost = () => {
           .then((res) => res.json())
           .then((data) => {
             console.log(data);
+            Swal.fire({
+                icon : 'success',
+                title: 'Success',
+                text: 'Blog Added Successfully'
+            })
+          });
+      };
+
+      const uploadThumbnail = (e) => {
+        const selFile = e.target.files[0];
+    
+        console.log(selFile);
+    
+        const tempForm = new FormData();
+        tempForm.append("file", selFile);
+    
+        fetch(api_url + "/util/uploadfile", { method: "POST", body: tempForm })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log(data);
+            setThumbnail(selFile.name);
           });
       };
 
@@ -88,8 +112,33 @@ const CreatePost = () => {
        <Box className={classes.container}>
            <img className={classes.image} src={url} alt=""/>
 
-           <Formik initialValues={blogForm} onSubmit={blo}>
+           <Formik initialValues={blogForm} onSubmit={addBlog}>
+                {({values, handleChange, handleSubmit}) => (
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-floating mt-5">
+                            <input className="form-control" placeholder="title" id="title" onChange={handleChange} value={values.title} />
+                            <label htmlFor="title">Blog Title</label>
+                        </div>
+                        <div className="form-floating mt-3">
+                            <textarea  placeholder="description" className="form-control" id="description" onChange={handleChange} value={values.description}></textarea>
+                            <label htmlFor="Description">Description</label>
+                        </div>
 
+                        <label className="mt-3">Upload File</label>
+                        <input
+                          onChange={uploadThumbnail}
+                          className="form-control"
+                          type="file"
+                        />
+                        <MDEditor
+                            value={blogvalue}
+                            onChange={setblogValue}
+                            className="mt-3"
+                        />
+
+                        <Button type="submit" color="primary" variant="contained" className="float-start mt-5 mb-5"><AddCircle />&nbsp; Create Blog</Button>
+                    </form>
+                )}
            </Formik>
        </Box>
     )
